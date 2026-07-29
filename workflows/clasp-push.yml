@@ -1,0 +1,28 @@
+# .github/workflows/clasp-push.yml
+name: Push to Google Apps Script
+on:
+  workflow_call:
+    secrets:
+      CLASPRC_JSON:
+        required: true
+      CLASP_JSON:
+        required: true
+
+jobs:
+  clasp-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - name: Write clasp credentials
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+          CLASP_JSON: ${{ secrets.CLASP_JSON }}
+        run: |
+          printf '%s\n' "$CLASPRC_JSON" > ~/.clasprc.json
+          printf '%s\n' "$CLASP_JSON" > .clasp.json
+      - run: npx clasp push --force
