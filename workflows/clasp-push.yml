@@ -1,25 +1,29 @@
-# .github/workflows/clasp-push.yml
 name: Push to Google Apps Script
+
 on:
   workflow_call:
     secrets:
       CLASPRC_JSON:
         required: true
-      CLASP_JSON:
-        required: true
+        description: Contents of ~/.clasprc.json (Google OAuth token)
 
 jobs:
   clasp-push:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: npm
-      - run: npm ci
-      - name: Write clasp credentials
-        - name: Write clasp auth credentials
+
+      - name: Install clasp
+        run: npm ci
+
+      - name: Write clasp auth credentials
         env:
           CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
         run: |
@@ -36,4 +40,6 @@ jobs:
             exit 1
           fi
           printf '%s\n' "$CLASPRC_JSON" > ~/.clasprc.json
-      - run: npx clasp push --force
+
+      - name: Push to Apps Script
+        run: npx clasp push --force
