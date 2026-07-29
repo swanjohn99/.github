@@ -19,10 +19,21 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Write clasp credentials
+        - name: Write clasp auth credentials
         env:
           CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
-          CLASP_JSON: ${{ secrets.CLASP_JSON }}
         run: |
+          if [ -z "$CLASPRC_JSON" ]; then
+            echo "Missing CLASPRC_JSON secret (org or repo)."
+            exit 1
+          fi
+          if [ ! -f .clasp.json ]; then
+            echo "Missing committed .clasp.json with project scriptId."
+            exit 1
+          fi
+          if grep -q 'REPLACE_WITH_APPS_SCRIPT_PROJECT_ID' .clasp.json; then
+            echo "Update .clasp.json scriptId before deploying."
+            exit 1
+          fi
           printf '%s\n' "$CLASPRC_JSON" > ~/.clasprc.json
-          printf '%s\n' "$CLASP_JSON" > .clasp.json
       - run: npx clasp push --force
